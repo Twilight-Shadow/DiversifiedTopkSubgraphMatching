@@ -44,17 +44,16 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
     // std::cout << label.size() << '\n';
     rMutex.lock();
     ++running_count;
-    std::cout << "adding..." << data_graph_index << '\n';
     rMutex.unlock();
     Graph* query_graph = new Graph(true);
     query_graph->loadGraphFromFile(input_query_graph_file);
 
     query_graph->buildCoreTable();
-    std::cout << "Finish Loading Query Graph" << data_graph_index << '\n';
+    // std::cout << "Finish Loading Query Graph\n";
 
     Graph* data_graph = new Graph(true);
     data_graph->loadGraphFromFile(input_data_graph_path + "/data_graph/" + std::to_string(data_graph_index) + ".graph");
-    std::cout << "Finish Loading Data Graph" << data_graph_index << '\n';
+    // std::cout << "Finish Loading Data Graph\n";
 
     int qsize = query_graph->getVerticesCount();
 
@@ -62,11 +61,11 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
 
     ui** candidates = NULL;
     ui* candidates_count = NULL;
-    // std::vector<std::unordered_map<VertexID, std::vector<VertexID >>> TE_Candidates;
-    // std::vector<std::vector<std::unordered_map<VertexID, std::vector<VertexID>>>> NTE_Candidates;
+    std::vector<std::unordered_map<VertexID, std::vector<VertexID >>> TE_Candidates;
+    std::vector<std::vector<std::unordered_map<VertexID, std::vector<VertexID>>>> NTE_Candidates;
     FilterVertices::GQLFilter(data_graph, query_graph, candidates, candidates_count);
     FilterVertices::sortCandidates(candidates, candidates_count, (ui)qsize);
-    std::cout << "Finish Finding Candidates" << data_graph_index << '\n';
+    // std::cout << "Finish Finding Candidates\n";
 
     Edges ***edge_matrix = NULL;
     edge_matrix = new Edges **[qsize];
@@ -74,11 +73,11 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
         edge_matrix[i] = new Edges *[qsize];
     }
     BuildTable::buildTables(data_graph, query_graph, candidates, candidates_count, edge_matrix);
-    std::cout << "Finish Building Edge Matrix" << data_graph_index << '\n';
+    // std::cout << "Finish Building Edge Matrix\n";
 
     ui* matching_order = NULL;
     ui* pivots = NULL;
-    // size_t order_num = 100;
+    size_t order_num = 100;
     GenerateQueryPlan::generateGQLQueryPlan(data_graph, query_graph, candidates_count, matching_order, pivots);
     GenerateQueryPlan::checkQueryPlanCorrectness(query_graph, matching_order, pivots);
     // std::cout << "Finish Generating Query Plan\n";
@@ -86,7 +85,7 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
     size_t output_limit = 1;
     size_t embedding_count = 0;
     size_t call_count = 0;
-    // size_t time_limit = 20050509;
+    size_t time_limit = 20050509;
     std::ofstream file("./MatchRes/MatchResult" + std::to_string(data_graph_index) + ".txt", std::ios::out);
     VertexID u, v;
     // std::map<VertexID, VertexID> map_info;
@@ -121,7 +120,6 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
         file << "Query matches " + std::to_string(data_graph_index) + ".graph" + " without overflow." << '\n';
         finishMutex.lock();
         ++finished;
-        std::cout << "fin" << data_graph_index << ' ' << finished << '\n';
         finishMutex.unlock();
         status[data_graph_index] = 1;
     }
@@ -261,7 +259,6 @@ void ParallelSubgraphMatching(int id, std::string input_query_graph_file, std::s
     delete data_graph;
     rMutex.lock();
     --running_count;
-    std::cout << "minusing..." << data_graph_index << '\n';
     rMutex.unlock();
     return;
 }
@@ -326,8 +323,6 @@ int main(int argc, char** argv){
         status[i] = 0;
     }
 
-    puts("?");
-
     std::pair<ui, ui> max_index = make_pair(0, 0);
     std::vector<pair<VertexID, VertexID> > edges;
     LoadGraph(input_data_graph_path, edges, max_index);
@@ -342,13 +337,11 @@ int main(int argc, char** argv){
     GraphOP* G = new GraphOP(max_index);
     G->build(edges);
 
-    puts("?");
-
     std::vector<ui> label;
     LoadLabel(input_data_graph_path, label);
 
     for (int i = 0; i < np; ++i) stopFlag[i] = false;
-    ctpl::thread_pool pool(1);
+    ctpl::thread_pool pool(4);
     std::vector<pair<int, int> > Partition_Graph[np];
     std::ifstream file(input_data_graph_path + "/Distance_Matrix.txt", std::ios::in);
     int** distance = new int*[np];
@@ -361,133 +354,55 @@ int main(int argc, char** argv){
     file.close();
     file.clear();
 
-    puts("?");
-
     int query_index = GetQueryIndex(input_query_graph_file);
     int* truth = new int[np];
-    file.open(input_data_graph_path + "/ground_truth.txt", std::ios::in);
-    for (int i = 0; i <= query_index; ++i) {
-        for (int j = 0; j < np; ++j) {
-            file >> truth[j];
+    int* used = new int[np];
+    int* vis = new int[np];
+    int* deg = new int[np];
+
+    file.open(input_data_graph_path + "/Partition_Matrix.txt", std::ios::in);
+    for (int i = 0; i < np; ++i) deg[i] = 0;
+    for (int i = 0; i < np; ++i) {
+        used[i] = false;
+        for (int j = 0, e; j < np; ++j) {
+            file >> e;
+            if (!e) {
+                ++deg[i], ++deg[j];
+                Partition_Graph[i].push_back(make_pair(j, distance[i][j]));
+                Partition_Graph[j].push_back(make_pair(i, distance[j][i]));
+            }
         }
     }
     file.close();
     file.clear();
 
-    // std::cout << query_index << '\n';
-    // for (int i = 0; i < np; ++i) std::cout << truth[i] << ' ';
-    // puts("");
-
-    file.open(input_data_graph_path + "/Partition_Matrix.txt", std::ios::in);
-    int* deg = new int[np];
-    std::vector<pair<int, int> > Nodes;
-    for (int i = 0; i < np; ++i) deg[i] = 0;
-    for (int i = 0; i < np; ++i) {
-        for (int j = 0, e; j < np; ++j) {
-            file >> e;
-            if (!e && truth[i] && truth[j]) {
-                ++deg[i];
-                Partition_Graph[i].push_back(make_pair(j, distance[i][j]));
-            }
-        }
-    }
-
-    puts("?");
-
-    int* used = new int[np];
-    int* vis = new int[np];
-    for (int i = 0; i < np; ++i) {
-        if (truth[i]) Nodes.push_back(make_pair(deg[i], i));
-        used[i] = vis[i] = 0;
-    }
-    // std::cout << Nodes.size() << '\n';
-    puts("?");
-
-    std::sort(Nodes.begin(), Nodes.end(), std::greater<pair<int, int> >());
     std::priority_queue<clique> Q;
-    if (Nodes.size()) {
-        Q.push(clique{Nodes.begin()->first, 0, Nodes.begin()->second});
-        used[Nodes.begin()->second] = 1;
-    }
-    int pushed = 0;
-    puts("Step1");
+    int pushed = 0, fptr = 0;
 
-    while (!Q.empty() && finished < k) {
+    while (finished < k && pushed < np) {
+        if (Q.empty()) {
+            for (int i = fptr; i < np; ++i) {
+                if (!used[i]) {
+                    fptr = i;
+                    break;
+                }
+            }
+            used[fptr] = true;
+            Q.push(clique{deg[fptr], 0, fptr});
+            ++fptr;
+        }
         int u = Q.top().idx;
         Q.pop();
-        // std::cout << u << "\n";
         pool.push(ParallelSubgraphMatching, input_query_graph_file, input_data_graph_path, u, G, max_index, std::ref(label), pushed, Graph_Matrix);
         ++pushed;
         for (auto i = Partition_Graph[u].begin(); i != Partition_Graph[u].end(); ++i) {
-            if (i->second > 1 && !used[i->first]) {
+            if (!used[i->first]) {
                 Q.push(clique{deg[i->first], i->second, i->first});
-                used[i->first] = 1;
-            }
-            // else used[i->first] = 2;
-        }
-    }
-    // pool.stop(true);
-    // sleep(5);
-    // std::cout << pushed << ' ' << finished << ' ' << running_count << '\n';
-    while (finished < k && running_count) {
-        sleep(1);
-        // std::cout << finished << ' ' << running_count << "u\n";
-    }
-    if (finished >= k) {
-        pool.clear_queue();
-        finishMutex.lock();
-        ++finished;
-        finishMutex.unlock();
-    }
-    puts("Step2");
-    // for (int i = 0; i < np; ++i) std::cout << used[i] << ' ';
-    // puts("");
-
-    if (finished < k) {
-        if (Nodes.size()) Q.push(clique{Nodes.begin()->first, 0, Nodes.begin()->second});
-        while (!Q.empty() && finished < k) {
-            int u = Q.top().idx;
-            Q.pop();
-            if (used[u] != 1) {
-                pool.push(ParallelSubgraphMatching, input_query_graph_file, input_data_graph_path, u, G, max_index, std::ref(label), pushed, Graph_Matrix);
-                // std::cout << u << '\n';
-                ++pushed;
-            }
-            for (auto i = Partition_Graph[u].begin(); i != Partition_Graph[u].end(); ++i) {
-                if (vis[i->first] != 1) {
-                    Q.push(clique{deg[i->first], i->second, i->first});
-                    vis[i->first] = 1;
-                }
+                used[i->first] = true;
             }
         }
     }
-    // std::cout << pushed << ' ' << finished << ' ' << running_count << '\n';
-    while (finished < k && running_count) {
-        sleep(1);
-        // std::cout << finished << ' ' << running_count << "v\n";
-    }
-    if (finished >= k) {
-        pool.clear_queue();
-        finishMutex.lock();
-        ++finished;
-        finishMutex.unlock();
-    }
-
-    puts("Step3");
-    if (finished < k) {
-        for (int i = 0; i < np && finished < k; ++i) {
-            if (used[i] != 1 && vis[i] != 1) {
-                pool.push(ParallelSubgraphMatching, input_query_graph_file, input_data_graph_path, i, G, max_index, std::ref(label), pushed, Graph_Matrix);
-                ++pushed;
-            }
-        }
-    }
-
-    while (finished < k && running_count) {
-        sleep(1);
-        // std::cout << finished << ' ' << running_count << "w\n";
-    }
-    std::cout << pushed << ' ' << finished << ' ' << running_count << '\n';
+    
     if (finished >= k) {
         pool.clear_queue();
         finishMutex.lock();
@@ -495,8 +410,6 @@ int main(int argc, char** argv){
         finishMutex.unlock();
     }
     pool.stop(true);
-
-    puts("Step4");
 
     std::ofstream ofile("./timeres.txt", std::ios::out);
     std::vector<pair<std::chrono::time_point<std::chrono::high_resolution_clock>, std::chrono::time_point<std::chrono::high_resolution_clock> > > real_time_span;
@@ -518,8 +431,6 @@ int main(int argc, char** argv){
     ofile << time_match << '\n';
     ofile.close();
     ofile.clear();
-
-    puts("Step5");
     
     std::vector<int> MatchList;
     for (int i = 0; i < np; ++i) {
@@ -533,8 +444,6 @@ int main(int argc, char** argv){
     ofile << '\n';
     ofile.close();
 
-    puts("Step6");
-
     delete G;
     for (int i = 0; i < max_index.first; ++i) {
         Graph_Matrix[i].clear();
@@ -546,7 +455,7 @@ int main(int argc, char** argv){
     delete[] status;
     for (int i = 0; i < np; ++i) delete[] distance[i];
     delete[] distance;
-    delete[] deg;
     delete[] truth;
+    delete[] deg;
     return 0;
 }

@@ -29,7 +29,6 @@ void Graph::BuildNLF() {
     for (ui i = 0; i < vertices_count_; ++i) {
         ui count;
         const VertexID * neighbors = getVertexNeighbors(i, count);
-        // std::cout << count << '\n';
         for (ui j = 0; j < count; ++j) {
             VertexID u = neighbors[j];
             LabelID label = getVertexLabel(u);
@@ -79,7 +78,6 @@ void Graph::BuildLabelOffset() {
 }
 
 void Graph::loadGraphFromFile(const std::string &file_path) {
-    // std::cout << file_path << '\n';
     std::ifstream infile(file_path);
     if (!infile.is_open()) {
         std::cout << "Can not open the graph file " << file_path << " ." << std::endl;
@@ -98,8 +96,6 @@ void Graph::loadGraphFromFile(const std::string &file_path) {
 
     LabelID max_label_id = 0;
     std::vector<ui> neighbors_offset(vertices_count_, 0);
-
-    // puts("F1");
 
     while (infile >> type) {
         if (type == 'v') { // Read vertex.
@@ -137,8 +133,6 @@ void Graph::loadGraphFromFile(const std::string &file_path) {
         }
     }
 
-    // puts("F2");
-
     infile.close();
     labels_count_ = (ui)labels_frequency_.size() > (max_label_id + 1) ? (ui)labels_frequency_.size() : max_label_id + 1;
 
@@ -152,11 +146,7 @@ void Graph::loadGraphFromFile(const std::string &file_path) {
         std::sort(neighbors_ + offsets_[i], neighbors_ + offsets_[i + 1]);
     }
 
-    // puts("F3");
-
     BuildReverseIndex();
-
-    // puts("F4");
 
     if (enable_label_offset_) {
         BuildNLF();

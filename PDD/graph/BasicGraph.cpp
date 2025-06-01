@@ -105,7 +105,7 @@ void GraphOP::Match_BFS(std::vector<VertexID>& start_vertex, BFS_TREE* Qroot, st
     double time_in_ns;
 
     // bool* visited = new bool[node_count + 1];
-    const size_t MAX_NODE = 1500000;
+    const size_t MAX_NODE = 30000000;
     // const size_t MAX_DEGREE = 2000;
     std::bitset<MAX_NODE> visited;
     int qsize = query_graph->getVerticesCount();
