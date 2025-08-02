@@ -6,9 +6,23 @@ Any edge partitioning method can be used for this step, we recommend to use [Dis
 
 ## STEP-2: Partition Prediction
 
-The source code of partition prediction algorithm can be found in [SPMiner](https://github.com/snap-stanford/neural-subgraph-learning-GNN), we only use the subgraph matching part. Since the origin code only implemented a prediction of whether one query graph is a subgraph of one data graph, we added a batch processing mechanism to accelerate the prediction process by GPU. In this way, the model can output the prediction value of all partitions in parallel.
+The source code of partition prediction algorithm can be found in [SPMiner](https://github.com/snap-stanford/neural-subgraph-learning-GNN), we only use the subgraph matching part of the experimental branch, because only this branch takes node features into account. Our implementation can be found in `prediction/` .
 
-**Dataset:** for training, validation and testing, we all use the synthetic dataset that is used in SPMiner. The model only needs to be trained once, and it can be used in any other dataset in our experiment.
+### Environment Setup
+
+You can refer to `prediction/requirements.txt` to install dependencies.
+
+### Dataset
+
+For training, validation and testing, we all use the synthetic dataset that is used in SPMiner. The model only needs to be trained once, and it can be used in any other dataset in our experiment.
+
+### Training
+
+Train the encoder by command: `python3 -m subgraph_matching.train --node_anchored`. The model will be saved to `ckpt/model.pt`. You can analyze the trained encoder via `python3 -m subgraph_matching.test --node_anchored`.
+
+### Testing
+
+The module `python3 -m subgraph_matching.alignment.py [--query_path=...] [--target_path=...]` provides a utility to obtain all pairs of corresponding matching scores, given a pickle file of the query and target graphs in networkx format. Run the module without these arguments for an example using random graphs. 
 
 ## STEP-3: Subgraph Matching
 
@@ -71,6 +85,8 @@ The **ground truth** file from partition prediction stage should be provided whe
 You can switch between PDD and PDD+ and choose to write embeddings to `embedding.bin` in `configuration/Config.h` . File `show_embedding.cpp` helps to display all embeddings.
 
 ### NOTES:
+
+Most of the offline processing tools can be found in `tools/`.
 
 Vertex partitioning and hybrid partitioning are not supported due to the design of inter-partition matching algorithm.
 
