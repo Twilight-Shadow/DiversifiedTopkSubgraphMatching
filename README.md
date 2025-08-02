@@ -1,51 +1,42 @@
-# DiversifiedTopkSubgraphMatching
-**NOTICE:** The APIs of the current version is **BADLY DEFINED** due to extensive need of debugging and testing. A well refined version will be submitted later on main branch. The experiment data will be uploaded to Google Drive later. 
+# Diversified Top-k Subgraph Matching
 
-## Graph Partitioning
+## STEP-1: Graph Partitioning
 
-We just use [Distributed NE](https://github.com/masatoshihanai/DistributedNE) for this step.
+Any edge partitioning method can be used for this step, we recommend to use [Distributed NE](https://github.com/masatoshihanai/DistributedNE) or [SHEEP](https://github.com/dmargo/sheep) .
 
-## Ordering-Embedding
+## STEP-2: Partition Prediction
 
-### Environment Setup
+The source code of partition prediction algorithm can be found in [SPMiner](https://github.com/snap-stanford/neural-subgraph-learning-GNN), we only use the subgraph matching part. Since the origin code only implemented a prediction of whether one query graph is a subgraph of one data graph, we added a batch processing mechanism to accelerate the prediction process by GPU. In this way, the model can output the prediction value of all partitions in parallel.
 
-Run `pip -r requirement.txt` to install dependencies automatically.
+**Dataset:** for training, validation and testing, we all use the synthetic dataset that is used in SPMiner. The model only needs to be trained once, and it can be used in any other dataset in our experiment.
 
-### Training
-
-Train the encoder: `python3 -m subgraph_matching.train` .
-
-The code uses balanced synthetic dataset by default, which generate same number of positive pairs and negative pairs. You can also use custom datasets, which should be organized in following format:
-
-```
-<src node> <dst node> <src node label> <dst node label>
-```
-
-### Testing
-
-Test the encoder: `python3 -m subgraph_matching.test` . The APIs for query and dataset have not been defined, so the input informations are hard-coded.
-
-For input, user should provide one query, $n$ partitions and $n$ anchor files (which are used to identify sub-structures, defined by user). For one execution, the program will output a binary vector, $i_{th}$ number represents whether this query is likely appears in $i_{th}$ partition or not. Query graph and partition graph should be organized in the format above.
-
-## PDD & PDD+
+## STEP-3: Subgraph Matching
 
 ### Environment Setup
 
-The program should be executed on a 64-bit machine equipped with `GCC 11.4.0` or above, along with `CMake`. The directiry of a dataset should be organized as follows:
+`GCC 11.4.0` and `CMake` are needed for compilation. To efficiently manage threads, we use [CTPL](https://github.com/vit-vit/ctpl) library, which has been already involved in the directory.
 
-```
-dataset_test/
-dataset_test/query_graph
-dataset_test/data_graph
-dataset_test/map_info
-dataset_test/partition_point
-dataset_test/WG.txt
-dataset_test/all_labels.txt
-dataset_test/Distance_Matrix.txt
-dataset_test/ground_truth.txt
+### Build
+
+```bash
+mkdir build && cd build
+cmake ..
+make -j4
 ```
 
-The query graph folder stores query graphs in `*.graph`, while the data graph folder stores partition graphs in `*.graph` . `.graph` format is showed as follows:
+### Execuate
+
+For a quick start, you can run the following command in bash:
+
+```bash
+./build/matching/SubgraphMatching.out -q test/query.graph -d test/partitions/ -n 4 -k 3 -g test/test.graph -p 3 -m test/distance_matrix.txt -t test/ground_truth.txt -r test/node_replica/
+```
+
+which finds top-3 diversified matches of `query.graph` in `test.graph` using algorithm PDD+.
+
+### Data Preparation
+
+**Query graph**, **data graph** and **partition graph** are organized in CSR format:
 
 ``` 
 t <vertex count> <edge count>
@@ -55,26 +46,33 @@ e <src vertex> <dst vertex>
 ...
 ```
 
-The map_info folder stores the remap info of partition graphs, which will be used to output results mapping in data graph.
+All partition graphs should be in one folder and be named from `0.graph` to `[partition_number - 1].graph`. All graphs used in our experiment are undirected graph with node label.
 
-The partition_point folder stores the cut-off vertices of each partition in several text files, each file stores cuf-off vertex ID spliting by space.
+Since we use edge partitioning method for graph partitioning, the vertices that are replicated between partitions should be recorded for inter-partition subgraph matching. **If a vertex is in more than one partition simultaneously, then it is a replicated node.** For each partition, the index of replicated nodes should be stored in `[partition_index].txt`, and these txt files should be in one folder.
 
-WG.txt stores the edge list of data graph, while all_labels.txt stores label information of data graph, in a format of `<vertex ID> <label>` .
+A **distance matrix** stores the pairwise distance between any two partitions in `PAG(Partition Adjacency Graph)`. Two partitions are adjacent if the intersection set between the vertex lists of the two partitions is not empty. After building PAG, you can run shortest path algorithm such as `Floyed` or `Dijkstra` on PAG to calculate the pairwise distance.
 
-Distance_Matrix.txt stores a  $n\times n$ matrix, where $D_{i,j}$ represents the shortest distance between $P_i$ and $P_j$ in Partition Adjacency Graph.
+The **ground truth** file from partition prediction stage should be provided when running PDD+. It stores 0/1 value, where the $i_{th}$ one represents whether the given query graph is in $i_{th}$ partition graph or not (0-not exist, 1-exist).
 
-ground_truth.txt stores the prediction results of whether each query appears in each partition, representing by several binary vectors.
-
-### execute
-
-For build, just simply run:
+### Options & Configurations
 
 ```bash
-mkdir build && cd build
-cmake ..
-make
+-q: the path of query graph file
+-g: the path of data graph file
+-d: the path of folder which stores all partition graphs
+-r: the path of folder which stores replicated nodes in each partition
+-m: the path of distance matrix file
+-t: the path of ground truth file
+-k: the top-k value
+-n: number of thread
+-p: number of partition
 ```
 
-For testing, you can run :`./build/matching/SubgraphMatching.out -q $QUERY_GRAPH_PATH -d $DATA_GRAPH_PATH -k $K -p $NUMBER_OF_PARTITION` .
+You can switch between PDD and PDD+ and choose to write embeddings to `embedding.bin` in `configuration/Config.h` . File `show_embedding.cpp` helps to display all embeddings.
 
-By default, the program will output Top-k matches along with running time.
+### NOTES:
+
+Vertex partitioning and hybrid partitioning are not supported due to the design of inter-partition matching algorithm.
+
+The algorithm used in intra-partition matching phase can be replaced by any subgraph matching algorithm, in our experiemt we use a hybird way, which is GQL filter + GQL order + LFTJ  enumeration. 
+
