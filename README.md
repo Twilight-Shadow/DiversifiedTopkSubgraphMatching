@@ -6,7 +6,7 @@ Any edge partitioning method can be used for this step, we recommend to use [Dis
 
 ## STEP-2: Partition Prediction
 
-The source code of partition prediction algorithm can be found in [SPMiner](https://github.com/snap-stanford/neural-subgraph-learning-GNN), we only use the subgraph matching part of the experimental branch, because only this branch takes node features into account. Our implementation can be found in `prediction/` .
+The implementation of our partition prediction module is located in the `prediction/` directory. This component is adapted from the SPMiner framework developed by the SNAP group at Stanford. 
 
 ### Environment Setup
 
@@ -14,7 +14,7 @@ You can refer to `prediction/requirements.txt` to install dependencies.
 
 ### Dataset
 
-For training, validation and testing, we all use the synthetic dataset that is used in SPMiner. The model only needs to be trained once, and it can be used in any other dataset in our experiment.
+For training, validation and testing, you need to use the synthetic dataset. The model only needs to be trained once, and it can be used in any other dataset in our experiment.
 
 ### Training
 
