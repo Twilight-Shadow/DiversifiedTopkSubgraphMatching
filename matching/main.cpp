@@ -478,6 +478,7 @@ EXIT_PDD:
     );
 
     while (true) {
+        if (_terminate_) break;
         uint32_t max_dist = 0, max_deg = 0;
         int choice = -1;
         for (uint32_t j : available_partition) {
