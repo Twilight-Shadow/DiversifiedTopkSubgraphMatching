@@ -1,5 +1,7 @@
 # Diversified Top-k Subgraph Matching
 
+**NOTE: You can view our [technical report](TECHNICAL_REPORT.md)** here.
+
 ## STEP-1: Graph Partitioning
 
 Any edge partitioning method can be used for this step, we recommend to use [Distributed NE](https://github.com/masatoshihanai/DistributedNE) or [SHEEP](https://github.com/dmargo/sheep) .
