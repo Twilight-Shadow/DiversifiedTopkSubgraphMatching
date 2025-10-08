@@ -1,6 +1,6 @@
 # Diversified Top-k Subgraph Matching
 
-**NOTE: You can view our [technical report](TECHNICAL_REPORT.md)** here.
+**NOTE: You can view our [technical report](technical_report.pdf)** here.
 
 ## STEP-1: Graph Partitioning
 

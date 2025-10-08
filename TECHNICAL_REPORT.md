@@ -4,22 +4,28 @@ We assume that all subgraph matches of query $Q$ in data graph $G$ have already 
 
 **<u>Max–Min k-Dispersion.</u>**
 Given a finite point set $P = \{p_1, \dots, p_n\}$ and a distance function $d: P \times P \to \mathbb{R}_{\ge 0}$ that is non-negative, symmetric, and satisfies $d(p,p)=0$ (and possibly the triangle inequality), and a parameter $k \le n$, the goal is to find a subset
+
 $$
 S^* \subseteq P, |S^*| = k,\text{that maximizes} \min_{u \ne v \in S^*} d(u, v).
 $$
+
 **<u>Reduction construction.</u>**
 Let $(P, d, k)$ be an arbitrary instance of Max–Min Dispersion.
 - Data graph. For each point $p_i \in P$, create a vertex $v_i$.
     Construct a complete undirected graph $G = (V,E)$ over $\{v_1, \dots, v_n\}$,and set the weight of each edge $(v_i, v_j)$ to $d(p_i, p_j)$.Because $d$ satisfies the triangle inequality, the shortest-path distance between $v_i$ and $v_j$ in $G$ equals $d(p_i, p_j)$.
 - Query and matches. Let $Q$ be a single isolated vertex. Every $v_i$ is a valid match. Define the candidate set as $\mathcal{R} = \{ \{v_1\}, \dots, \{v_n\} \}$.
 - Distance between matches. For any two matches $R_i = \{v_i\}$ and $R_j = \{v_j\}$, define the inter-match distance as
+
 $$
 d^*(R_i, R_j) = \operatorname{dist}_G(v_i, v_j) = d(p_i, p_j).
 $$
+
 - Objective. The DT*k*SM problem asks to find a subset $S \subseteq \mathcal{R}$ of size $k$ that maximizes the minimum inter-match distance:
+
 $$
 \max_{S \subseteq \mathcal{R},\,|S|=k} \min_{R_i \ne R_j \in S} d^*(R_i, R_j).
 $$
+
 **<u>Equivalence.</u>**
 Any solution $S \subseteq \mathcal{R}$ corresponds to a subset $P_S \subseteq P$ of the same size, and since $d^*(R_i, R_j) = d(p_i, p_j)$, the two problems are equivalent.
 
@@ -30,9 +36,11 @@ The transformation uses $O(n^2)$ edges and $n$ candidate matches, so its time an
 
 *Assumptions (A1)--(A5).* Throughout, we consider a graph partitioned into disjoint subgraphs (or “partitions”).  We impose the following conditions on each partition $G_k$:
 - (A1) <u>Compactness.</u>  Each partition $G_k$ lies within a ball of fixed radius $d$ around its center $c_k$, i.e.,
+
 $$
 \max_{x \in G_k}\mathrm{dist}_G(x, c_k) \;\le\; d.
 $$
+
 - (A2) <u>Uniformity.</u> The radius $d$ in (A1) is the same for all partitions.
 
 - (A3) <u>Boundary thickness.</u> When moving from one partition to the next along a path in the Partition Adjacency Graph (PAG), any path that crosses an internal boundary must travel at least $2d$.
@@ -44,29 +52,36 @@ For analysis, we only consider matches that are fully contained within a single 
 
 **Definition 1 (approximation ratio).**
 For distance-based diversity, the approximation ratio is defined by
+
 $$
 \rho \;=\; \frac{D_{\mathrm{alg}}}{D^*},
 $$
+
 where $D_{\mathrm{alg}}$ is the distance-based diversity achieved by the algorithm and $D^*$ is the optimal distance-based diversity.
 
 **Lemma 1 (Distance envelope)**.
 Let $G_i$ and $G_j$ be partitions whose hop distance in the PAG is $h=d_H(G_i,G_j)$.  Under (A1) and (A2), the true distance between any vertices $u\in G_i$ and $v\in G_j$ satisfies
+
 $$
 2\,(h-1)\,d \;\le\; \mathrm{dist}_G(u,v) \;\le\; 2\,(h+1)\,d.
 $$
 
 **Theorem 3 (Approximation ratio).**
 Let $G_i$ and $G_j$ be the pair of partitions selected by the algorithm as the farthest in the PAG, with hop distance $h=d_H(G_i,G_j)$.  Under assumptions (A1)–(A4) and the boundary thickness (A3) for the lower bound, the approximation ratio defined in Definition 1 satisfies
+
 $$
 \frac{h-1}{h+1} \;\le\; \rho \;\le\; 1.
 $$
 
 **Proof.**
 Since the ratio is defined by $\rho = D_{\mathrm{alg}}/D^*$, it is immediate that $\rho \le 1$, because $D_{\mathrm{alg}}$ cannot exceed $D^*$. For the lower bound, consider the partitions $G_i$ and $G_j$ with hop distance $h$.  Lemma 1 gives
+
 $$
 2(h-1)d \;\le\; \mathrm{dist}_G(u,v)\;\le\; 2(h+1)d
 $$
+
 for $u\in G_i$, $v\in G_j$. The algorithm selects a pair that realizes the left-hand (worst-case) bound, so its achieved diversity is $D_{\mathrm{alg}} \ge 2(h-1)d$. On the other hand, an optimal solution cannot exceed the right-hand bound, hence $D^*\le 2(h+1)d$.  Therefore
+
 $$
 \rho \;=\; \frac{D_{\mathrm{alg}}}{D^*}
 \;\ge\;
@@ -74,6 +89,7 @@ $$
 \;=\;
 \frac{h-1}{h+1},
 $$
+
 proving the stated bounds on $\rho$.
 
 The lower bound $\tfrac{h-1}{h+1}$ increases with $h$ and approaches $1$ as $h\to\infty$, meaning that for partitions far apart in the PAG, the approximation ratio becomes arbitrarily close to one.
