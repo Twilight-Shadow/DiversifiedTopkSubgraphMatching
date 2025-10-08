@@ -6,7 +6,7 @@ We assume that all subgraph matches of query $Q$ in data graph $G$ have already 
 Given a finite point set $P = \{p_1, \dots, p_n\}$ and a distance function $d: P \times P \to \mathbb{R}_{\ge 0}$ that is non-negative, symmetric, and satisfies $d(p,p)=0$ (and possibly the triangle inequality), and a parameter $k \le n$, the goal is to find a subset
 
 $$
-S^{*} \subseteq P, |S^{*}| = k,\text{that maximizes} \min_{u \ne v \in S^{*}} d(u, v).
+S^{\ast} \subseteq P, |S^{\ast}| = k,\text{that maximizes} \min_{u \ne v \in S^{\ast}} d(u, v).
 $$
 
 **<u>Reduction construction.</u>**
@@ -17,7 +17,7 @@ Let $(P, d, k)$ be an arbitrary instance of Max–Min Dispersion.
 - Distance between matches. For any two matches $R_i = \{v_i\}$ and $R_j = \{v_j\}$, define the inter-match distance as
 
 $$
-d^*(R_i, R_j) = \mathbf{dist}_G(v_i, v_j) = d(p_i, p_j).
+d^*(R_i, R_j) = \mathrm{dist}_G(v_i, v_j) = d(p_i, p_j).
 $$
 
 - Objective. The DT*k*SM problem asks to find a subset $S \subseteq \mathcal{R}$ of size $k$ that maximizes the minimum inter-match distance:
@@ -83,11 +83,7 @@ $$
 for $u\in G_i$, $v\in G_j$. The algorithm selects a pair that realizes the left-hand (worst-case) bound, so its achieved diversity is $D_{\mathrm{alg}} \ge 2(h-1)d$. On the other hand, an optimal solution cannot exceed the right-hand bound, hence $D^*\le 2(h+1)d$.  Therefore
 
 $$
-\rho = \frac{D_{\mathrm{alg}}}{D^*}
-\ge
-\frac{2(h-1)d}{2(h+1)d}
-=
-\frac{h-1}{h+1},
+\rho = \frac{D_{\mathrm{alg}}}{D^*} \ge \frac{2(h-1)d}{2(h+1)d} = \frac{h-1}{h+1},
 $$
 
 proving the stated bounds on $\rho$.
