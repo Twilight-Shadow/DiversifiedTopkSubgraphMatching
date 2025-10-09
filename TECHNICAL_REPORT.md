@@ -1,5 +1,5 @@
 # Technical Report for "Efficient Partition-based Approaches for Diversified Top-k Subgraph Matching"
-## Proof of Theorem 1: "*Finding the top-k subgraph matches that maximize distance-based diversity is NP-Hard, even when all subgraph matches are pre-computed.*"
+## Proof of Theorem 1: "Finding the top-k subgraph matches that maximize distance-based diversity is NP-Hard, even when all subgraph matches are pre-computed."
 We assume that all subgraph matches of query $Q$ in data graph $G$ have already been computed, forming the candidate set $\mathcal{R}$. We reduce from the classical <u>Max–Min k-Dispersion</u> problem, which is known to be NP-hard on metric inputs <a href="#ref1">[1]</a>. 
 
 **<u>Max–Min k-Dispersion.</u>**
@@ -32,7 +32,7 @@ Any solution $S \subseteq \mathcal{R}$ corresponds to a subset $P_S \subseteq P$
 **<u>Complexity.</u>**
 The transformation uses $O(n^2)$ edges and $n$ candidate matches, so its time and space costs are polynomial in $n$. Thus Max–Min Dispersion $\le_P$ DT*k*SM, proving that DT*k*SM is NP-hard.
 
-## Proof of Theorem 3: *Let $G_i$ and $G_j$ be two partitions in the Partition Adjacency Graph (PAG) such that the shortest path between them is $h = d_H(G_i, G_j)$.  Under the specific assumptions, the approximation ratio $\rho$ is bounded by: $\rho\ge \frac{h-1}{h+1}$.*
+## Proof of Theorem 3: "Let $G_i$ and $G_j$ be two partitions in the Partition Adjacency Graph (PAG) such that the shortest path between them is $h = d_H(G_i, G_j)$.  Under the specific assumptions, the approximation ratio $\rho$ is bounded by: $\rho\ge \frac{h-1}{h+1}$."
 
 *Assumptions (A1)--(A5).* Throughout, we consider a graph partitioned into disjoint subgraphs (or “partitions”).  We impose the following conditions on each partition $G_k$:
 - (A1) <u>Compactness.</u>  Each partition $G_k$ lies within a ball of fixed radius $d$ around its center $c_k$, i.e.,
