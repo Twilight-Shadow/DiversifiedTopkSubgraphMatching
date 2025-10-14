@@ -52,7 +52,7 @@ which finds top-3 diversified matches of `query.graph` in `test.graph` using alg
 
 ### Data Preparation
 
-**Query graph**, **data graph** and **partition graph** are organized in CSR format:
+**Query graph**, **data graph** and **partition graph** are organized using the format below:
 
 ``` 
 t <vertex count> <edge count>
