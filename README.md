@@ -1,6 +1,6 @@
 # Diversified Top-k Subgraph Matching
 
-**NOTE: You can view our [technical report](technical_report.pdf)** here.
+**NOTE: You can view our technical report in the [Appendix](https://arxiv.org/abs/2511.19008) of our paper** .
 
 ## STEP-1: Graph Partitioning
 
@@ -94,3 +94,16 @@ Vertex partitioning and hybrid partitioning are not supported due to the design 
 
 The algorithm used in intra-partition matching phase can be replaced by any subgraph matching algorithm, in our experiemt we use a hybird way, which is GQL filter + GQL order + LFTJ  enumeration. 
 
+## Citation:
+Please cite the following paper if you use this code in your work.
+```tex
+@misc{chen2025efficientpartitionbasedapproachesdiversified,
+      title={Efficient Partition-based Approaches for Diversified Top-k Subgraph Matching}, 
+      author={Liuyi Chen and Yuchen Hu and Zhengyi Yang and Xu Zhou and Wenjie Zhang and Kenli Li},
+      year={2025},
+      eprint={2511.19008},
+      archivePrefix={arXiv},
+      primaryClass={cs.DB},
+      url={https://arxiv.org/abs/2511.19008}, 
+}
+```
